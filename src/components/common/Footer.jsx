@@ -15,7 +15,7 @@ import {
   FaInstagram, 
   FaLinkedin 
 } from "react-icons/fa";
-import "../../styles/footer.css";
+import "../../styles/Footer.css";
 
 const Footer = () => {
   const [email, setEmail] = useState("");
