@@ -1,15 +1,8 @@
 import { useState, useEffect } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { 
-  LayoutDashboard, 
-  Image, 
-  FileText, 
-  LogOut,
-  Menu,
-  X,
-  ChevronRight,
-  Home,
-  Users
+  LayoutDashboard, Image, FileText, LogOut, Menu, X,
+  ChevronRight, Home, Users, Shield
 } from "lucide-react";
 
 const AdminLayout = () => {
@@ -20,7 +13,6 @@ const AdminLayout = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if user is logged in
     const userData = localStorage.getItem('user');
     const token = localStorage.getItem('accessToken');
     
@@ -37,7 +29,6 @@ const AdminLayout = () => {
     }
   }, [navigate]);
 
-  // Check screen size
   useEffect(() => {
     const checkMobile = () => {
       const mobile = window.innerWidth < 768;
@@ -50,6 +41,10 @@ const AdminLayout = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  useEffect(() => {
+    if (isMobile) setSidebarOpen(false);
+  }, [location.pathname]);
+
   const handleLogout = () => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('user');
@@ -57,18 +52,38 @@ const AdminLayout = () => {
   };
 
   const menuItems = [
-  { path: '/admin/dashboard', icon: <LayoutDashboard size={20} />, label: 'Dashboard' },
-  { path: '/admin/blog', icon: <FileText size={20} />, label: 'Blog Posts' },
-  { path: '/admin/gallery', icon: <Image size={20} />, label: 'Gallery' },
-  { path: '/admin/users', icon: <Users size={20} />, label: 'Users' }, // ADD THIS
-];
+    { path: '/admin/dashboard', icon: <LayoutDashboard size={20} />, label: 'Dashboard' },
+    { path: '/admin/blog', icon: <FileText size={20} />, label: 'Blog Posts' },
+    { path: '/admin/gallery', icon: <Image size={20} />, label: 'Gallery' },
+    { path: '/admin/users', icon: <Users size={20} />, label: 'Users' },
+  ];
 
   const getPageTitle = () => {
     const path = location.pathname;
-    if (path.includes('/admin/dashboard')) return 'Dashboard';
+    if (path.includes('/admin/dashboard')) return 'Dashboard Overview';
     if (path.includes('/admin/blog')) return 'Blog Management';
     if (path.includes('/admin/gallery')) return 'Gallery Management';
+    if (path.includes('/admin/users')) return 'User Management';
     return 'Admin Panel';
+  };
+
+  const getUserDisplayName = () => {
+    if (!user) return 'Admin';
+    return user.name || user.fullName || user.email?.split('@')[0] || 'Admin';
+  };
+
+  const getUserInitial = () => {
+    const name = getUserDisplayName();
+    return name.charAt(0).toUpperCase();
+  };
+
+  const getUserEmail = () => {
+    return user?.email || '';
+  };
+
+  const getUserRole = () => {
+    const role = user?.role || 'admin';
+    return role === 'super_admin' ? 'Super Admin' : 'Admin';
   };
 
   if (!user) {
@@ -83,144 +98,146 @@ const AdminLayout = () => {
         gap: '16px'
       }}>
         <div style={{
-          width: '40px',
-          height: '40px',
+          width: '44px', height: '44px',
           border: '3px solid #e2e8f0',
           borderTopColor: '#3b82f6',
           borderRadius: '50%',
           animation: 'spin 0.8s linear infinite'
-        }}></div>
-        <p style={{ color: '#64748b' }}>Loading...</p>
+        }} />
+        <p style={{ color: '#64748b', fontWeight: 500 }}>Loading admin panel...</p>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
-    );
+    )
   }
 
+  // Brand colors
+  const primary = '#3b82f6';
+  const primaryDark = '#2563eb';
+  const primaryLight = 'rgba(59,130,246,0.15)';
+  const primaryGlow = 'rgba(59,130,246,0.35)';
+
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#f8fafc' }}>
-      {/* Overlay for mobile */}
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#f1f5f9' }}>
+      {/* Mobile Overlay */}
       {isMobile && sidebarOpen && (
         <div
           onClick={() => setSidebarOpen(false)}
           style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.5)',
-            zIndex: 999
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+            zIndex: 998, backdropFilter: 'blur(2px)'
           }}
         />
       )}
 
-      {/* Sidebar */}
+      {/* ============ SIDEBAR ============ */}
       <aside style={{
         width: sidebarOpen ? '280px' : '0px',
-        background: 'linear-gradient(180deg, #1e293b 0%, #0f172a 100%)',
-        color: 'white',
+        background: 'white',
+        color: '#1e293b',
         position: 'fixed',
-        top: 0,
-        left: 0,
-        bottom: 0,
-        zIndex: 1000,
-        transition: 'all 0.3s ease',
+        top: 0, left: 0, bottom: 0,
+        zIndex: 999,
+        transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         overflow: 'hidden',
         display: 'flex',
-        flexDirection: 'column'
+        flexDirection: 'column',
+        boxShadow: sidebarOpen ? '4px 0 24px rgba(0,0,0,0.06)' : 'none',
+        borderRight: '1px solid #e2e8f0'
       }}>
-        {/* Sidebar Header */}
+        {/* Logo */}
         <div style={{ 
-          padding: '24px', 
-          borderBottom: '1px solid rgba(255,255,255,0.1)',
+          padding: '20px 20px',
+          borderBottom: '1px solid #f1f5f9',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between'
+          justifyContent: 'space-between',
+          minHeight: '72px'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <Link to="/admin/dashboard" style={{ 
+            display: 'flex', alignItems: 'center', gap: '12px', 
+            textDecoration: 'none', color: '#1e293b' 
+          }}>
             <div style={{
-              width: '42px',
-              height: '42px',
-              background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+              width: '42px', height: '42px',
+              background: `linear-gradient(135deg, ${primary}, ${primaryDark})`,
               borderRadius: '12px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '20px',
-              fontWeight: 'bold',
-              flexShrink: 0
-            }}>C</div>
-            <h2 style={{ 
-              fontSize: '18px', 
-              fontWeight: 700, 
-              margin: 0, 
-              whiteSpace: 'nowrap',
-              letterSpacing: '-0.5px'
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontWeight: 700, fontSize: '18px', flexShrink: 0, color: 'white',
+              boxShadow: `0 4px 12px ${primaryGlow}`
             }}>
-              CERESENSE
-            </h2>
-          </div>
+              C
+            </div>
+            <div>
+              <h2 style={{ fontSize: '17px', fontWeight: 700, margin: 0, letterSpacing: '-0.3px', whiteSpace: 'nowrap' }}>
+                CERESENSE
+              </h2>
+              <p style={{ fontSize: '10px', color: '#94a3b8', margin: '2px 0 0 0', letterSpacing: '1px', textTransform: 'uppercase' }}>
+                Admin Panel
+              </p>
+            </div>
+          </Link>
           {isMobile && (
-            <button
-              onClick={() => setSidebarOpen(false)}
-              style={{
-                background: 'rgba(255,255,255,0.1)',
-                border: 'none',
-                color: 'white',
-                cursor: 'pointer',
-                padding: '6px',
-                borderRadius: '8px',
-                display: 'flex'
-              }}
-            >
-              <X size={20} />
+            <button onClick={() => setSidebarOpen(false)}
+              style={{ background: '#f1f5f9', border: 'none', color: '#64748b', cursor: 'pointer', padding: '6px', borderRadius: '8px', display: 'flex' }}>
+              <X size={18} />
             </button>
           )}
         </div>
 
         {/* Navigation */}
         <nav style={{ 
-          flex: 1, 
-          padding: '16px 12px', 
-          display: 'flex', 
-          flexDirection: 'column', 
-          gap: '4px',
+          flex: 1, padding: '12px 12px', display: 'flex', flexDirection: 'column', gap: '2px',
           overflowY: 'auto'
         }}>
+          <p style={{ 
+            fontSize: '10px', color: '#94a3b8', 
+            textTransform: 'uppercase', letterSpacing: '1.5px',
+            padding: '8px 16px 6px', fontWeight: 600
+          }}>
+            Main Menu
+          </p>
+          
           {menuItems.map((item) => {
-            const isActive = location.pathname === item.path;
+            const isActive = location.pathname === item.path || 
+              (item.path !== '/admin/dashboard' && location.pathname.startsWith(item.path));
+            
             return (
               <Link
                 key={item.path}
                 to={item.path}
-                onClick={() => isMobile && setSidebarOpen(false)}
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  padding: '12px 16px',
-                  color: isActive ? 'white' : 'rgba(255,255,255,0.6)',
-                  textDecoration: 'none',
-                  borderRadius: '10px',
-                  background: isActive ? 'rgba(59,130,246,0.25)' : 'transparent',
-                  transition: 'all 0.2s ease',
+                  display: 'flex', alignItems: 'center', gap: '12px',
+                  padding: '11px 16px',
+                  color: isActive ? primary : '#64748b',
+                  textDecoration: 'none', borderRadius: '10px',
+                  background: isActive ? '#eff6ff' : 'transparent',
+                  transition: 'all 0.15s ease',
                   fontWeight: isActive ? 600 : 400,
                   fontSize: '14px',
-                  border: isActive ? '1px solid rgba(59,130,246,0.3)' : '1px solid transparent'
+                  position: 'relative'
                 }}
                 onMouseEnter={(e) => {
                   if (!isActive) {
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
-                    e.currentTarget.style.color = 'white';
+                    e.currentTarget.style.background = '#f8fafc';
+                    e.currentTarget.style.color = '#1e293b';
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!isActive) {
                     e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.color = 'rgba(255,255,255,0.6)';
+                    e.currentTarget.style.color = '#64748b';
                   }
                 }}
               >
-                <span style={{ opacity: isActive ? 1 : 0.7 }}>{item.icon}</span>
+                <span style={{ display: 'flex', color: isActive ? primary : '#94a3b8' }}>{item.icon}</span>
                 <span style={{ flex: 1 }}>{item.label}</span>
-                {isActive && <ChevronRight size={16} style={{ opacity: 0.7 }} />}
+                {isActive && (
+                  <div style={{
+                    width: '4px', height: '20px',
+                    background: primary, borderRadius: '2px',
+                    position: 'absolute', right: '-1px'
+                  }} />
+                )}
               </Link>
             );
           })}
@@ -228,204 +245,196 @@ const AdminLayout = () => {
 
         {/* Sidebar Footer */}
         <div style={{ 
-          padding: '16px 12px', 
-          borderTop: '1px solid rgba(255,255,255,0.1)'
+          padding: '12px', borderTop: '1px solid #f1f5f9'
         }}>
-          <Link
-            to="/"
-            target="_blank"
+          {/* View Website */}
+          <Link to="/" target="_blank"
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              padding: '12px 16px',
-              color: 'rgba(255,255,255,0.6)',
-              textDecoration: 'none',
-              borderRadius: '10px',
-              fontSize: '14px',
-              marginBottom: '12px',
-              transition: 'all 0.2s ease'
+              display: 'flex', alignItems: 'center', gap: '12px',
+              padding: '10px 16px', color: '#64748b',
+              textDecoration: 'none', borderRadius: '10px',
+              fontSize: '13px', marginBottom: '8px',
+              transition: 'all 0.15s ease'
             }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
-              e.currentTarget.style.color = 'white';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = 'rgba(255,255,255,0.6)';
-            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.color = primary }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#64748b' }}
           >
-            <Home size={20} />
+            <Home size={18} />
             <span>View Website</span>
+            <ChevronRight size={14} style={{ marginLeft: 'auto', opacity: 0.5 }} />
           </Link>
 
+          {/* User Info */}
           <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '12px', 
-            padding: '12px 16px',
-            marginBottom: '12px',
-            background: 'rgba(255,255,255,0.05)',
-            borderRadius: '10px'
+            display: 'flex', alignItems: 'center', gap: '10px',
+            padding: '10px 12px', marginBottom: '8px',
+            background: '#f8fafc', borderRadius: '10px'
           }}>
             <div style={{
-              width: '36px',
-              height: '36px',
-              background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '14px',
-              fontWeight: 600,
-              flexShrink: 0
+              width: '36px', height: '36px',
+              background: `linear-gradient(135deg, ${primary}, ${primaryDark})`,
+              borderRadius: '10px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '14px', fontWeight: 700, flexShrink: 0, color: 'white',
+              boxShadow: `0 2px 8px ${primaryGlow}`
             }}>
-              {user.fullName?.charAt(0) || user.email?.charAt(0) || 'A'}
+              {getUserInitial()}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ 
-                fontSize: '13px', 
-                fontWeight: 600, 
-                color: 'white',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis'
+                fontSize: '13px', fontWeight: 600, color: '#1e293b',
+                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
               }}>
-                {user.fullName || 'Admin'}
+                {getUserDisplayName()}
               </div>
               <div style={{ 
-                fontSize: '11px', 
-                color: 'rgba(255,255,255,0.5)',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis'
+                fontSize: '11px', color: '#94a3b8',
+                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
               }}>
-                {user.email}
+                {getUserEmail()}
+              </div>
+              <div style={{ marginTop: '4px' }}>
+                <span style={{
+                  padding: '2px 8px', borderRadius: '10px', fontSize: '10px',
+                  fontWeight: 600,
+                  background: user?.role === 'super_admin' ? '#fef3c7' : '#eff6ff',
+                  color: user?.role === 'super_admin' ? '#92400e' : primary
+                }}>
+                  {getUserRole()}
+                </span>
               </div>
             </div>
           </div>
 
-          <button
-            onClick={handleLogout}
+          {/* Logout */}
+          <button onClick={handleLogout}
             style={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              padding: '12px 16px',
-              background: 'rgba(239,68,68,0.1)',
-              border: '1px solid rgba(239,68,68,0.2)',
-              borderRadius: '10px',
-              color: '#f87171',
-              fontSize: '14px',
-              fontWeight: 500,
-              cursor: 'pointer',
-              transition: 'all 0.2s ease'
+              width: '100%', display: 'flex', alignItems: 'center', gap: '12px',
+              padding: '11px 16px',
+              background: '#fef2f2',
+              border: '1px solid #fecaca',
+              borderRadius: '10px', color: '#ef4444',
+              fontSize: '13px', fontWeight: 500, cursor: 'pointer',
+              transition: 'all 0.15s ease'
             }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(239,68,68,0.2)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(239,68,68,0.1)';
-            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = '#fee2e2' }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = '#fef2f2' }}
           >
-            <LogOut size={18} />
+            <LogOut size={17} />
             <span>Logout</span>
           </button>
         </div>
       </aside>
 
-      {/* Main Content */}
+      {/* ============ MAIN CONTENT ============ */}
       <main style={{
         flex: 1,
         marginLeft: sidebarOpen ? '280px' : '0px',
-        transition: 'margin-left 0.3s ease',
+        transition: 'margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         minHeight: '100vh',
-        width: sidebarOpen ? 'calc(100% - 280px)' : '100%'
+        display: 'flex',
+        flexDirection: 'column'
       }}>
-        {/* Header */}
+        {/* Top Header */}
         <header style={{
           background: 'white',
           padding: '0 24px',
           height: '64px',
           display: 'flex',
           alignItems: 'center',
-          gap: '20px',
+          gap: '16px',
           borderBottom: '1px solid #e2e8f0',
           position: 'sticky',
           top: 0,
-          zIndex: 100,
-          boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+          zIndex: 50,
+          boxShadow: '0 1px 2px rgba(0,0,0,0.03)'
         }}>
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
+          {/* Hamburger */}
+          <button onClick={() => setSidebarOpen(!sidebarOpen)}
             style={{
-              background: 'none',
-              border: '1px solid #e2e8f0',
-              color: '#64748b',
-              cursor: 'pointer',
-              padding: '8px',
-              borderRadius: '8px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 0.2s ease'
+              background: 'none', border: '1px solid #e2e8f0',
+              color: '#64748b', cursor: 'pointer', padding: '8px',
+              borderRadius: '8px', display: 'flex',
+              alignItems: 'center', justifyContent: 'center',
+              transition: 'all 0.15s ease', flexShrink: 0
             }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#f1f5f9';
-              e.currentTarget.style.color = '#1e293b';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = '#64748b';
-            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.color = '#1e293b' }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#64748b' }}
+            title={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
           >
-            {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+            {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
-          
-          <h1 style={{ 
-            flex: 1, 
-            fontSize: '18px', 
-            fontWeight: 600, 
-            color: '#1e293b', 
-            margin: 0 
-          }}>
-            {getPageTitle()}
-          </h1>
 
+          {/* Page Title */}
+          <div style={{ flex: 1 }}>
+            <h1 style={{ fontSize: '17px', fontWeight: 600, color: '#1e293b', margin: 0 }}>
+              {getPageTitle()}
+            </h1>
+          </div>
+
+          {/* User Badge */}
           <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            padding: '6px 12px',
-            background: '#f8fafc',
-            borderRadius: '8px'
+            display: 'flex', alignItems: 'center', gap: '10px',
+            padding: '6px 14px 6px 6px', background: '#f8fafc',
+            borderRadius: '30px', border: '1px solid #e2e8f0'
           }}>
             <div style={{
-              width: '32px',
-              height: '32px',
-              background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              fontSize: '13px',
-              fontWeight: 600
+              width: '30px', height: '30px',
+              background: `linear-gradient(135deg, ${primary}, ${primaryDark})`,
+              borderRadius: '50%', display: 'flex', alignItems: 'center',
+              justifyContent: 'center', color: 'white',
+              fontSize: '12px', fontWeight: 700, flexShrink: 0
             }}>
-              {user.fullName?.charAt(0) || 'A'}
+              {getUserInitial()}
             </div>
-            <span style={{ fontSize: '13px', fontWeight: 500, color: '#1e293b' }}>
-              {user.fullName || 'Admin'}
-            </span>
+            <div>
+              <div style={{ fontSize: '13px', fontWeight: 600, color: '#1e293b', lineHeight: 1.2 }}>
+                {getUserDisplayName()}
+              </div>
+              <div style={{ fontSize: '10px', color: '#94a3b8', lineHeight: 1.2 }}>
+                {getUserRole()}
+              </div>
+            </div>
           </div>
         </header>
 
-        {/* Content */}
-        <div style={{ padding: '24px' }}>
+        {/* Page Content */}
+        <div style={{ padding: '24px', flex: 1 }}>
           <Outlet />
         </div>
+
+        {/* Footer */}
+        <footer style={{
+          padding: '14px 24px', borderTop: '1px solid #e2e8f0',
+          textAlign: 'center', fontSize: '12px', color: '#94a3b8',
+          background: 'white'
+        }}>
+          CERESENSE Admin Panel &copy; {new Date().getFullYear()} · All rights reserved.
+        </footer>
       </main>
+
+      <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+        
+        nav::-webkit-scrollbar {
+          width: 4px;
+        }
+        nav::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        nav::-webkit-scrollbar-thumb {
+          background: #e2e8f0;
+          border-radius: 4px;
+        }
+        
+        @media (max-width: 768px) {
+          main {
+            width: 100% !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };
