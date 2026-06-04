@@ -37,3 +37,26 @@ body {
     padding-right: 1rem;
   }
 }
+/* Mobile responsiveness for Admin Login */
+@media (max-width: 768px) {
+  /* Stack branding on top of form */
+  .admin-login-card {
+    flex-direction: column !important;
+    max-width: 450px !important;
+  }
+  
+  /* Hide branding features on very small screens */
+  .admin-login-branding {
+    padding: 30px 20px !important;
+    flex: 0 0 auto !important;
+  }
+  
+  .admin-login-branding .feature-list {
+    display: none !important;
+  }
+  
+  .admin-login-form {
+    padding: 30px 20px !important;
+    flex: 0 0 auto !important;
+  }
+}
